@@ -19,5 +19,5 @@ for file in os.listdir("corpus"):
 
         cp = nltk.RegexpParser(grammar)
         if(len(sentence)>0):
-            tree = nltk.tree(sentence[0])
+            # tree = nltk.tree(sentence[0])
             print tree
