@@ -7,7 +7,6 @@ for file in os.listdir("corpus"):
     lines = io.open("corpus/" + file, 'r', encoding="utf-8")
 
     for line in lines:
-        print(line)
         # sentence segmenter
         sentence = nltk.sent_tokenize(line)
 
@@ -16,9 +15,9 @@ for file in os.listdir("corpus"):
         # apply part-of-speech tagger
         sentence = [nltk.pos_tag(sent) for sent in sentence]
 
-        grammar = r"""NP:{<DT|PP\$>?<JJ>*<NN>}"""
+        grammar = r"""NP:{<NNP>* <VBN> <NNP>*}"""
 
         cp = nltk.RegexpParser(grammar)
-        result = cp.parse(sentence[0])
-
-        print result
+        if(len(sentence)>0):
+            tree = nltk.tree(sentence[0])
+            print tree
