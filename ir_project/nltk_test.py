@@ -1,23 +1,35 @@
-import os
+import os, re
 import nltk
 import io
 
 for file in os.listdir("corpus"):
-    print file
+
+    #print file
+
     lines = io.open("corpus/" + file, 'r', encoding="utf-8")
 
     for line in lines:
+        line = line.encode('ascii', 'ignore')
+        #line = line.replace(',','').replace('(','').replace(')','').replace(';','')
+
         # sentence segmenter
-        sentence = nltk.sent_tokenize(line)
+        sentences = nltk.sent_tokenize(line)
 
         # word tokenizer
-        sentence = [nltk.word_tokenize(sent) for sent in sentence]
+        words = [nltk.word_tokenize(sent) for sent in sentences]
+
         # apply part-of-speech tagger
-        sentence = [nltk.pos_tag(sent) for sent in sentence]
+        pos_tags = [nltk.pos_tag(word) for word in words]
 
-        grammar = r"""NP:{<NNP>* <VBN> <NNP>*}"""
+        #chunked_sentences = nltk.ne_chunk_sents(pos_tags, binary=True)
+        chunked_sentences = [nltk.ne_chunk(pos_tag) for pos_tag in pos_tags]
 
-        cp = nltk.RegexpParser(grammar)
-        if(len(sentence)>0):
-            tree = nltk.tree(sentence[0])
-            print tree
+        #pattern = """(born|live(d)?|work(ed)?)"""
+        pattern = """.*"""
+        pattern = re.compile(pattern)
+
+        for chunked_sentence in chunked_sentences:
+            # 'ace': ['LOCATION', 'ORGANIZATION', 'PERSON', 'DURATION', 'DATE', 'CARDINAL', 'PERCENT', 'MONEY', 'MEASURE', 'FACILITY', 'GPE'],
+            for r in nltk.sem.relextract.extract_rels('PERSON', 'LOCATION', chunked_sentence, corpus='ace', pattern=pattern):
+                #print(r)
+                print(nltk.sem.relextract.rtuple(r))

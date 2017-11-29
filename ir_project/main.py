@@ -34,25 +34,20 @@ for page in pages:
 
     content = parsed_wikicode.strip_code()
 
-    file = io.open("corpus/"+title+".txt", "w", encoding="utf-8")
-    fileNew = io.open("corpus/"+title, "w", encoding="utf-8")
-    lines = content
+    file = io.open("corpus/" + title + "_old", "w", encoding="utf-8")
+    file.write(content)
+    file.close()
 
-    sentences = re.split(r'(?<!\s\w)\.\s*', lines)
-    for sentence in sentences:
-        sentence = sentence.replace(';','').replace('"','')
-        if sentence not in ['\n', '', ' ','.']:
-            fileNew.write(sentence + "\n")
+    lines = io.open("corpus/" + title + "_old", 'r', encoding="utf-8")
 
-    fileNew.close()
-
-    lines = io.open("corpus/" + title, 'r', encoding="utf-8")
-
+    newFile = io.open("corpus/" + title, "w", encoding="utf-8")
     for line in lines:
-        if not line.strip(): continue
-        file.write(line)
+        if ("Category:" not in line):
+            if not line.strip(): continue
+            newFile.write(line)
 
+    newFile.close()
 
-    os.remove("corpus/"+title)
+    os.remove("corpus/" + title + "_old")
 
     print('==========================================================================================')
