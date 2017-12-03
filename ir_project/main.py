@@ -4,7 +4,7 @@ import os
 import requests
 import mwparserfromhell
 
-pages = ['George_Orwell|Douglas_Adams|Ted_Chiang|Neil_Gaiman|Oscar_Wilde|Doris_Dana|Peter_Ackroyd|John_Boswell|George_R._R._Martin|Dan_Brown|Thomas_Bulfinch|J._K._Rowling|Dante_Alighieri|Margaret_Atwood|Stephen_King']
+pages = ['George_Orwell|Douglas_Adams|Bernard_Cornwell|Neil_Gaiman|Doris_Dana|Peter_Ackroyd|John_Boswell|George_R._R._Martin|Dan_Brown|J._K._Rowling|Margaret_Atwood|Stephen_King|Ernest_Hemingway|Suzanne_Collins']
 
 baseurl = 'http://en.wikipedia.org/w/api.php'
 my_atts = {}
