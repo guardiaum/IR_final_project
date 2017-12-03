@@ -16,10 +16,16 @@ pattern_death_place = ['.*\s(died|death|burr(y)(ied))\s(.*)?(in the|in|town|city
 
 pattern_nationality = ['.*\s(liv(e)?(d)?|(is|was) a(n)?)\s(.*)?(in the|in|town|city)']
 
-pattern_spouse = ['']
+pattern_spouse = ['.*(his|her|hers|is|was)?\s(marr(y|ied)?|wife|husband|companion|spouse|partner(ed)?)\s(with|to)?.*']
 
-pattern_children = ['']
+pattern_children = ['.*(father|mother|child(ren)|daughter|\bson\b).*']
 
-pattern_ocuppation = ['']
+pattern_occupation = ['(.*(analyst|chair(wo)?man|commissioner|counsel|director|economist|'
+                      'editor|executive|foreman|governor|head|lawyer|leader|librarian).*)?|'
+                      '(manager|partner|president|producer|journalist|professor|researcher|spokes(wo)?man|'
+                      'writer|,\sof\sthe?\s*)?']
 
-pattern_alma_mater = ['']
+pattern_alma_mater = ['.*(attend(ed)?|stud(y|ied)?).*']
+
+# DO A DICTIONARY OF KNOWN GENRES
+pattern_genre = ['']

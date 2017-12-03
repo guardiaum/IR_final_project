@@ -1,12 +1,18 @@
 import os, io, re, nltk, patterns
+from nltk.sem.relextract import extract_rels, rtuple
 
 keys = {'name':'', 'birth_date':'', 'death_date':'', 'birth_place': '', 'death_place':'',
-        'nationality': ''}
+        'nationality': '', 'spouse':'', 'children':'', 'alma_mater':'', 'occupation':'', 'genre':''}
 
-'''keys = {'name':'', 'birth_date':'', 'birth_place': '', 'death_date':'',
-            'death_place': '', 'occupation':'', 'nationality':'', 'genre':'',
-            'notableworks':'', 'alma_mater':'', 'spouse':'', 'children':''}
-            '''
+
+def generateChunkByGrammar(tags, grammar):
+    rp = nltk.RegexpParser(grammar)
+    return rp.parse(tags)
+
+
+def generateNLTKChunk(tags):
+    chunked_sentence = nltk.ne_chunk(tags)
+    return chunked_sentence
 
 
 def getValueByKey(tags, key):
@@ -53,16 +59,48 @@ def getValueByKey(tags, key):
                             if leaf[1] == 'JJ':
                                 value += leaf[0] + ' '
             return value
+    elif key == 'spouse' or key == 'children':
 
+        chunked_sentence = generateNLTKChunk(tags)
 
-def generateChunkByGrammar(tags, grammar):
-    rp = nltk.RegexpParser(grammar)
-    return rp.parse(tags)
+        pattern = ''
+        if key == 'spouse':
+            pattern = """.*(partner(ed)|spouse|
+                    wife|husband|companion|
+                    fiance|marr(y|ied)|marriage).*"""
 
+        elif key == 'children':
+            #print(chunked_sentence)
+            pattern = """.*(father|mother|child(ren)|daughter|\bson\b).*"""
 
-def generateNLTKChunk(tags):
-    chunked_sentence = nltk.ne_chunk(tags)
-    return chunked_sentence
+        if pattern is not '':
+            pattern = re.compile(pattern)
+
+            for r in extract_rels('PERSON', 'PERSON', chunked_sentence, corpus='ace', pattern=pattern):
+                print(rtuple(r))
+                return rtuple(r) # STUDY HOW TO RECOVER ONLY THE RELATION (NO TRIPLE, NO TAGS)
+
+    elif key == 'alma_mater':
+        chunked_sentence = generateNLTKChunk(tags)
+        pattern = '.*'
+        pattern = re.compile(pattern)
+
+        for r in extract_rels('PERSON', 'ORGANIZATION', chunked_sentence, corpus='ace', pattern=pattern):
+            print(rtuple(r))
+            return rtuple(r) # STUDY HOW TO RECOVER ONLY THE RELATION (NO TRIPLE, NO TAGS)
+
+    elif key == 'occupation':
+        chunked_sentence = generateNLTKChunk(tags)
+        pattern = '.*'
+        pattern = re.compile(pattern)
+
+        for r in extract_rels('PERSON', 'ORGANIZATION', chunked_sentence, corpus='ace', pattern=pattern):
+            print(rtuple(r))
+            return rtuple(r) # STUDY HOW TO RECOVER ONLY THE RELATION (NO TRIPLE, NO TAGS)
+
+    elif key == 'genre':
+        # VERIFY EACH SENTENCE IF HOLDS AN EXISTING GENRE FROM DICTIONARY
+        return None
 
 
 def getPatternList(key):
@@ -80,6 +118,16 @@ def getPatternList(key):
         return patterns.pattern_death_place
     elif key == 'nationality':
         return patterns.pattern_nationality
+    elif key == 'spouse':
+        return patterns.pattern_spouse
+    elif key == 'children':
+        return patterns.pattern_children
+    elif key == 'occupation':
+        return patterns.pattern_occupation
+    elif key == 'alma_mater':
+        return patterns.pattern_alma_mater
+    elif key == 'genre':
+        return patterns.pattern_genre
 
 
 def filterSentenceByKey(sentence, key):
@@ -91,6 +139,25 @@ def filterSentenceByKey(sentence, key):
             match = pattern.match(sentence)
             if match is not None:
                 return match.group(0)
+
+
+def getFieldByKey(sentence, article_keys, key):
+    sent = filterSentenceByKey(sentence, key)
+
+    if sent is not None:
+        # word tokenizer
+        words = nltk.word_tokenize(sent)
+
+        # apply part-of-speech tagger
+        pos_tags = nltk.pos_tag(words)
+
+        if article_keys[key] == '':
+
+            result = getValueByKey(pos_tags, key)
+
+            if result != '':
+                article_keys[key] = result
+                return article_keys
 
 
 def fillFields():
@@ -125,23 +192,5 @@ def fillFields():
             filled_keys['name'] = file_name
             print filled_keys
 
-
-def getFieldByKey(sentence, article_keys, key):
-    sent = filterSentenceByKey(sentence, key)
-
-    if sent is not None:
-        # word tokenizer
-        words = nltk.word_tokenize(sent)
-
-        # apply part-of-speech tagger
-        pos_tags = nltk.pos_tag(words)
-
-        if article_keys[key] == '':
-
-            result = getValueByKey(pos_tags, key)
-
-            if result != '':
-                article_keys[key] = result
-                return article_keys
 
 fillFields()
