@@ -1,8 +1,10 @@
-import os, io, re, nltk, patterns
+import os, io, re, nltk, patterns, csv
+import pandas as pd
 from nltk.sem.relextract import extract_rels, rtuple
 
+
 keys = {'name':'', 'birth_date':'', 'death_date':'', 'birth_place': '', 'death_place':'',
-        'nationality': '', 'spouse':'', 'children':'', 'alma_mater':'', 'occupation':'', 'genre':''}
+        'nationality': '', 'spouse':'', 'alma_mater':'', 'occupation':'', 'genre':[]}
 
 
 def generateChunkByGrammar(tags, grammar):
@@ -15,7 +17,14 @@ def generateNLTKChunk(tags):
     return chunked_sentence
 
 
-def getValueByKey(tags, key):
+def verifyLabelInTags(tags, words):
+    for tag in tags:
+        if tag[0] in words:
+            return True
+    return False
+
+
+def getValueByKey(author_name, tags, key):
 
     if key == 'birth_date' or key == 'death_date':
         grammar = """DATE: {<CD><NNP><CD>}
@@ -23,15 +32,13 @@ def getValueByKey(tags, key):
 
         tree = generateChunkByGrammar(tags, grammar)
 
-        if type(tree) is nltk.tree.Tree:
-            for node in tree:
-                if type(node) is nltk.tree.Tree:
-
-                    if node.label() == 'DATE':
-                        value = ''
-                        for leaf in node.leaves():
-                            value += leaf[0] + ' '
-                        return value
+        for node in tree:
+            if type(node) is nltk.tree.Tree:
+                if node.label() == 'DATE':
+                    value = ''
+                    for leaf in node.leaves():
+                        value += leaf[0] + ' '
+                    return value
 
     elif key == 'birth_place' or key == 'death_place':
 
@@ -59,48 +66,48 @@ def getValueByKey(tags, key):
                             if leaf[1] == 'JJ':
                                 value += leaf[0] + ' '
             return value
-    elif key == 'spouse' or key == 'children':
+    elif key == 'spouse':
 
         chunked_sentence = generateNLTKChunk(tags)
 
-        pattern = ''
-        if key == 'spouse':
-            pattern = """.*(partner(ed)|spouse|
+        pattern = """.*(partner(ed)|spouse|
                     wife|husband|companion|
                     fiance|marr(y|ied)|marriage).*"""
 
-        elif key == 'children':
-            #print(chunked_sentence)
-            pattern = """.*(father|mother|child(ren)|daughter|\bson\b).*"""
+        pattern = re.compile(pattern)
 
-        if pattern is not '':
-            pattern = re.compile(pattern)
-
-            for r in extract_rels('PERSON', 'PERSON', chunked_sentence, corpus='ace', pattern=pattern):
-                print(rtuple(r))
-                return rtuple(r) # STUDY HOW TO RECOVER ONLY THE RELATION (NO TRIPLE, NO TAGS)
+        for r in extract_rels('PERSON', 'PERSON', chunked_sentence, corpus='ace', pattern=pattern):
+            print(r['objsym'])
+            return rtuple(r)
 
     elif key == 'alma_mater':
+
         chunked_sentence = generateNLTKChunk(tags)
         pattern = '.*'
         pattern = re.compile(pattern)
 
         for r in extract_rels('PERSON', 'ORGANIZATION', chunked_sentence, corpus='ace', pattern=pattern):
-            print(rtuple(r))
-            return rtuple(r) # STUDY HOW TO RECOVER ONLY THE RELATION (NO TRIPLE, NO TAGS)
+            return r['objtext']
 
     elif key == 'occupation':
-        chunked_sentence = generateNLTKChunk(tags)
-        pattern = '.*'
-        pattern = re.compile(pattern)
 
-        for r in extract_rels('PERSON', 'ORGANIZATION', chunked_sentence, corpus='ace', pattern=pattern):
-            print(rtuple(r))
-            return rtuple(r) # STUDY HOW TO RECOVER ONLY THE RELATION (NO TRIPLE, NO TAGS)
+        authorFound = verifyLabelInTags(tags, author_name)
+
+        if authorFound:
+            grammar = """OCCUPATION: {(<VBD>|<VBZ>)(<DT>?<JJ>?<NN>?<,>?<CC>?)*}"""
+
+            tree = generateChunkByGrammar(tags, grammar)
+
+            for node in tree:
+                if type(node) is nltk.tree.Tree:
+                    if node.label() == 'OCCUPATION':
+                        value = ''
+                        for leaf in node.leaves():
+                            value += leaf[0] + ' '
+                        return value
 
     elif key == 'genre':
-        # VERIFY EACH SENTENCE IF HOLDS AN EXISTING GENRE FROM DICTIONARY
-        return None
+        return tags
 
 
 def getPatternList(key):
@@ -120,8 +127,6 @@ def getPatternList(key):
         return patterns.pattern_nationality
     elif key == 'spouse':
         return patterns.pattern_spouse
-    elif key == 'children':
-        return patterns.pattern_children
     elif key == 'occupation':
         return patterns.pattern_occupation
     elif key == 'alma_mater':
@@ -134,37 +139,58 @@ def filterSentenceByKey(sentence, key):
     pattern_list = getPatternList(key)
 
     if len(pattern_list) != 0:
+
         for pattern in pattern_list:
-            pattern = re.compile(pattern)
-            match = pattern.match(sentence)
-            if match is not None:
-                return match.group(0)
+            p = re.compile(pattern)
+
+            if key == 'genre':
+                match = p.search(sentence)
+                if match is not None:
+                    return match.group(0)
+            else:
+                match = p.match(sentence)
+
+                if match is not None:
+                    return match.group(0)
 
 
-def getFieldByKey(sentence, article_keys, key):
+def getFieldByKey(author_name, sentence, article_keys, key):
+
     sent = filterSentenceByKey(sentence, key)
 
     if sent is not None:
-        # word tokenizer
-        words = nltk.word_tokenize(sent)
 
-        # apply part-of-speech tagger
-        pos_tags = nltk.pos_tag(words)
+        if key == 'genre': # does not pos tag for genre field
 
-        if article_keys[key] == '':
+            if sent not in article_keys[key]:
+                article_keys[key].append(sent)
+            return article_keys
 
-            result = getValueByKey(pos_tags, key)
+        else:
+            # word tokenizer
+            words = nltk.word_tokenize(sent)
 
-            if result != '':
+            # apply part-of-speech tagger
+            pos_tags = nltk.pos_tag(words)
+
+        if article_keys[key] == '' and pos_tags is not None:
+
+            result = getValueByKey(author_name, pos_tags, key)
+
+            if result != '' or result is not None:
                 article_keys[key] = result
                 return article_keys
 
 
 def fillFields():
 
+    articles_fields = []
+
     for file_name in os.listdir("corpus"):
 
-        article_keys = dict(keys)
+        article_keys = {'name': '', 'birth_date': '', 'death_date': '', 'birth_place': '', 'death_place': '',
+                'nationality': '', 'spouse': '', 'alma_mater': '', 'occupation': '', 'genre': []}
+
         print ">>> "+file_name
 
         article_keys['name'] = file_name
@@ -175,7 +201,6 @@ def fillFields():
 
         file = io.open("corpus/" + file_name, 'r', encoding="utf-8")
 
-        filled_keys = dict()
         for line in file: # each line is a paragraph
             line = line.encode('ascii', 'ignore')
 
@@ -184,13 +209,24 @@ def fillFields():
 
             for sentence in sentences:
                 for key in aux_article_keys:
-                    result = getFieldByKey(sentence, aux_article_keys, key)
+                    result = getFieldByKey(file_name, sentence, aux_article_keys, key)
                     if result is not None:
-                        filled_keys = result
+                        article_keys = result
 
-        if filled_keys is not None:
-            filled_keys['name'] = file_name
-            print filled_keys
+        if article_keys is not None:
+            article_keys['name'] = file_name
+            articles_fields.append(article_keys)
+            print article_keys
 
+    dfs = []
+    for article_keys in articles_fields:
+        new_df = pd.DataFrame([article_keys], columns=['name', 'birth_date', 'death_date',
+                                                       'birth_place', 'death_place', 'nationality',
+                                                       'spouse', 'alma_mater', 'occupation', 'genre'])
+        dfs.append(new_df)
+
+    dfs = pd.concat(dfs, ignore_index=True)
+
+    dfs.to_csv('output.csv', index=True)
 
 fillFields()

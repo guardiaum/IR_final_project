@@ -18,14 +18,10 @@ pattern_nationality = ['.*\s(liv(e)?(d)?|(is|was) a(n)?)\s(.*)?(in the|in|town|c
 
 pattern_spouse = ['.*(his|her|hers|is|was)?\s(marr(y|ied)?|wife|husband|companion|spouse|partner(ed)?)\s(with|to)?.*']
 
-pattern_children = ['.*(father|mother|child(ren)|daughter|\bson\b).*']
-
-pattern_occupation = ['(.*(analyst|chair(wo)?man|commissioner|counsel|director|economist|'
-                      'editor|executive|foreman|governor|head|lawyer|leader|librarian).*)?|'
-                      '(manager|partner|president|producer|journalist|professor|researcher|spokes(wo)?man|'
-                      'writer|,\sof\sthe?\s*)?']
+pattern_occupation = ['.*(poet|inventor|author|biographer|novelist|'
+                      'editor|librarian|journalist|professor|historian|'
+                      'researcher|writer|translator).*']
 
 pattern_alma_mater = ['.*(attend(ed)?|stud(y|ied)?).*']
 
-# DO A DICTIONARY OF KNOWN GENRES
-pattern_genre = ['']
+pattern_genre = ['((non-)?fiction|novels|fantasy|thriller|mistery|historical|drama|romance|commedy|horror|literature|poetry)']
