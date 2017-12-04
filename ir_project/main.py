@@ -4,7 +4,19 @@ import os
 import requests
 import mwparserfromhell
 
-pages = ['George_Orwell|Douglas_Adams|Bernard_Cornwell|Neil_Gaiman|Doris_Dana|Peter_Ackroyd|John_Boswell|George_R._R._Martin|Dan_Brown|J._K._Rowling|Margaret_Atwood|Stephen_King|Ernest_Hemingway|Suzanne_Collins']
+pages = ['George_Orwell|Douglas_Adams|Bernard_Cornwell|Neil_Gaiman|'
+         'Doris_Dana|Peter_Ackroyd|John_Boswell|George_R._R._Martin|'
+         'Dan_Brown|J._K._Rowling|Margaret_Atwood|Stephen_King|'
+         'Ernest_Hemingway|Suzanne_Collins|F._Scott_Fitzgerald|Henry_Miller|'
+         'Nelson_Rodrigues|Monteiro_Lobato|Barbara_Cartland|Danielle_Steel|'
+         'Enid_Blyton|James_Patterson|Bram_Stoker|Charles_Maturin|'
+         'Pietro_Aretino|Carl_Abel|Kurt_Aland|Elizabeth_von_Arnim|'
+         'Michael_Pate|M._H._Holcroft|Laura_Esquivel|Arnold_Zweig|'
+         'Adolfo_Casais_Monteiro|Jorge_de_Sena|Harry_Martinson|Max_Frisch|'
+         'Joseph_Roth|Horacio_Quiroga|Castro_Alves|Clarice_Lispector|Manuel_Bandeira|'
+         'Christina_Stead|Michael_Ende|Theodor_Storm|Ernesto_Sabato|'
+         'Robert_Louis_Stevenson|Hunter_S._Thompson|Ian_McEwan|William_Blake|'
+         'Rui_Barbosa']
 
 baseurl = 'http://en.wikipedia.org/w/api.php'
 my_atts = {}
